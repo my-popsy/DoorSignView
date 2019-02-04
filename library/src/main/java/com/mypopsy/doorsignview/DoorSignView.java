@@ -17,10 +17,8 @@ import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
-import com.mypopsy.doorsignview.R;
 
 /**
  * Created by Cerrato Renaud <https://www.github.com/renaudcerrato>
@@ -121,7 +119,7 @@ public class DoorSignView extends View {
         mTextPaddingBottom = bottom;
         requestLayout();
     }
-    
+
     public void setShadowSize(int size) {
         this.mShadowSize = size;
         updateShadow();
@@ -201,15 +199,37 @@ public class DoorSignView extends View {
     @SuppressLint("DrawAllocation")
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-
         final int width = MeasureSpec.getSize(widthMeasureSpec);
         final int heightMode = MeasureSpec.getMode(heightMeasureSpec);
         final int heightSize = MeasureSpec.getSize(heightMeasureSpec);
         int height;
 
-        mTextLayout = new StaticLayout(mText, mTextPaint,
-                width - mTextPaddingLeft - mTextPaddingRight - 2 * mShadowSize,
-                Layout.Alignment.ALIGN_CENTER, mTextSpacingMult, mTextSpacingAdd, true);
+        int textWidth = width - mTextPaddingLeft - mTextPaddingRight - 2 * mShadowSize;
+        if (textWidth < 0) textWidth = width;
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            mTextLayout = StaticLayout.Builder
+                    .obtain(
+                            mText,
+                            0,
+                            mText.length(),
+                            mTextPaint,
+                            textWidth
+                    )
+                    .setAlignment(Layout.Alignment.ALIGN_CENTER)
+                    .setIncludePad(true)
+                    .setLineSpacing(mTextSpacingAdd, mTextSpacingMult)
+                    .build();
+        } else {
+            mTextLayout = new StaticLayout(
+                    mText,
+                    mTextPaint,
+                    textWidth,
+                    Layout.Alignment.ALIGN_CENTER,
+                    mTextSpacingMult,
+                    mTextSpacingAdd,
+                    true);
+        }
 
         mBodyBounds.right = width - 2 * mShadowSize;
         mBodyBounds.bottom = mTextLayout.getHeight() + mTextPaddingTop + mTextPaddingBottom;

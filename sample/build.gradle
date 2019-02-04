@@ -20,21 +20,8 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(path: ':library')
-    compile deps.support.appcompat
-    compile deps.support.design
-}
-
-afterEvaluate { project ->
-    android.applicationVariants.each { variant ->
-
-        Task copyApk = task(("release" + variant.variantData.name.capitalize()), type:Copy) {
-            from variant.outputs[0].outputFile
-            destinationDir project.projectDir
-            dependsOn variant.assemble
-        }
-
-        variant.assemble.finalizedBy(copyApk)
-    }
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(path: ':library')
+    implementation deps.support.appcompat
+    implementation deps.support.design
 }
