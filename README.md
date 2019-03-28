@@ -73,7 +73,7 @@ allprojects {
 Add the dependency:
 ```javascript
 dependencies {
-  compile 'com.github.my-popsy:DoorSignView:1.0.7'
+  compile 'com.github.my-popsy:DoorSignView:1.0.8'
 }
 ```
 
