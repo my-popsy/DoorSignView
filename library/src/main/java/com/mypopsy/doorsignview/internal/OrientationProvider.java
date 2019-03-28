@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.Display;
 import android.view.Surface;
+import android.view.WindowManager;
 
 /**
  * Created by Cerrato Renaud <renaud.cerrato@gmail.com>
@@ -18,12 +19,13 @@ import android.view.Surface;
 public class OrientationProvider {
 
     final private SensorManager mSensorManager;
-    final private Display mDisplay;
+    @Nullable final private Display mDisplay;
     @Nullable final private Sensor mSensor;
 
     final private float[] R = new float[9];
     final private float[] RR = new float[9];
     final private float[] YPR = new float[3];
+    private final Context mContext;
 
     private boolean isDirty;
     private boolean isStarted;
@@ -34,15 +36,20 @@ public class OrientationProvider {
         void onOrientationChanged(OrientationProvider provider);
     }
 
-    public OrientationProvider(@NonNull Context context, @NonNull Display display, @NonNull OnRotationChanged listener) {
-        this((SensorManager) context.getSystemService(Context.SENSOR_SERVICE), display, listener);
+    public OrientationProvider(@NonNull Context context, Display display, @NonNull OnRotationChanged listener) {
+        this(context, (SensorManager) context.getSystemService(Context.SENSOR_SERVICE), display, listener);
     }
 
-    public OrientationProvider(@NonNull SensorManager sensorManager, @NonNull Display display, @NonNull OnRotationChanged listener) {
+    public OrientationProvider(
+            @NonNull Context context,
+            @NonNull SensorManager sensorManager,
+            @NonNull Display display,
+            @NonNull OnRotationChanged listener) {
         mDisplay = display;
         mSensorManager = sensorManager;
         mListener = listener;
         mSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+        mContext = context;
     }
 
     /**
@@ -118,7 +125,8 @@ public class OrientationProvider {
                 return;
             }
 
-            int rotation = mDisplay.getRotation();
+            int rotation = safeRotation();
+
             int axisX, axisY;
 
             switch (event.sensor.getType()) {
@@ -225,5 +233,20 @@ public class OrientationProvider {
             R[12] = R[13] = R[14] = 0.0f;
             R[15] = 1.0f;
         }
+    }
+
+    private int safeRotation() {
+        if (mDisplay == null) {
+            WindowManager windowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+
+            if (windowManager != null) {
+                return windowManager.getDefaultDisplay().getRotation();
+            }
+
+        } else {
+            return mDisplay.getRotation();
+        }
+
+        return 0;
     }
 }
